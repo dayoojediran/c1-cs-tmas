@@ -3,7 +3,7 @@ FROM alpine:3.14
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apk add --update-cache \
-    jq curl && \
+    jq curl docker-cli && \
     rm -rf /var/cache/apk/*
 
 WORKDIR /app

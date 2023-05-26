@@ -10,8 +10,10 @@ evaluate=0
 evaluationEndpoint=""
 region=""
 threshold="high"
+username=""
+password=""
 
-while getopts "e:E:vr:t:" opt; do
+while getopts "e:E:vr:t:u:p:" opt; do
   case "$opt" in
     e)
       echo endpoint set $OPTARG
@@ -30,6 +32,12 @@ while getopts "e:E:vr:t:" opt; do
     t)
       threshold=$OPTARG
       ;;
+    u)
+      username=$OPTARG
+      ;;
+    p)
+      password=$OPTARG
+      ;;
   esac
 done
 
@@ -43,12 +51,18 @@ FLAGS=""
 [ "${verbose}" -ne 0 ] && FLAGS="${FLAGS} -v"
 [ ! -z "${region}" ] && FLAGS="${FLAGS} --region ${region}"
 
+# Login to registry if credentials are given
+registry=${1%/*}        # strip image:tag
+registry=${registry#*:} # string registry:
+[ ! -z "${username}" ] && echo ${password} | docker login --username AWS --password-stdin ${registry}
+
 echo Scanning $1
 echo Vulnerability threshold: $threshold
 # echo "endpoint=$endpoint, verbose=$verbose, evaluate=$evaluate, evaluationEndpoint=$evaluationEndpoint, region=$region, threshold=$threshold, Leftovers: $@"
 
 # Scan
 /app/tmas scan $1 ${FLAGS} | tee result.json
+# /usr/local/bin/tmas scan $1 ${FLAGS} | tee result.json
 
 fail=0
 [ "${threshold}" = "any" ] && \
